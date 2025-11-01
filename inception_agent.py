@@ -19,7 +19,7 @@ class InceptionLabsModel:
     def create_completion(
         self,
         messages: List[Dict[str, str]],
-        model: str = "inception-default",
+        model: str = "mercury",
         temperature: float = 0.7,
         max_tokens: int = 1000,
         tools: Optional[List[Dict]] = None,
@@ -51,7 +51,14 @@ class InceptionLabsModel:
             response.raise_for_status()
             return response.json()
         except requests.exceptions.RequestException as e:
-            raise Exception(f"Inception Labs API error: {str(e)}")
+            # Print the response body for debugging
+            error_detail = ""
+            if hasattr(e, 'response') and e.response is not None:
+                try:
+                    error_detail = f"\nResponse body: {e.response.text}"
+                except:
+                    pass
+            raise Exception(f"Inception Labs API error: {str(e)}{error_detail}")
 
 
 class InceptionAgent:
@@ -61,7 +68,7 @@ class InceptionAgent:
         self,
         inception_api_key: str,
         inception_base_url: str = "https://api.inceptionlabs.ai/v1",
-        model: str = "inception-default",
+        model: str = "mercury",
         system_prompt: str = "You are a helpful assistant."
     ):
         self.inception_model = InceptionLabsModel(inception_api_key, inception_base_url)

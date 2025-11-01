@@ -6,14 +6,45 @@ from inception_agent import InceptionAgent
 load_dotenv()
 
 
+def load_api_keys():
+    """Load API keys from .key file or environment variables."""
+    inception_key = None
+    openai_key = None
+
+    try:
+        with open('.key', 'r') as f:
+            lines = f.readlines()
+            for i, line in enumerate(lines):
+                line = line.strip()
+                if line.startswith('#Inseption labs API key'):
+                    # Next line should be the key
+                    if i + 1 < len(lines):
+                        inception_key = lines[i + 1].strip()
+                elif line.startswith('#OpenAI API key'):
+                    # Next line should be the key
+                    if i + 1 < len(lines):
+                        openai_key = lines[i + 1].strip()
+    except FileNotFoundError:
+        pass
+
+    # Fall back to environment variables if not found in file
+    if not inception_key:
+        inception_key = os.getenv("INCEPTION_API_KEY")
+    if not openai_key:
+        openai_key = os.getenv("OPENAI_API_KEY")
+
+    return inception_key, openai_key
+
+
 # Example 1: Simple chat without tools
 def simple_chat_example():
     print("=== Simple Chat Example ===\n")
 
+    inception_key, _ = load_api_keys()
     agent = InceptionAgent(
-        inception_api_key=os.getenv("INCEPTION_API_KEY"),
+        inception_api_key=inception_key,
         inception_base_url=os.getenv("INCEPTION_BASE_URL", "https://api.inceptionlabs.ai/v1"),
-        model="inception-default",
+        model="mercury",
         system_prompt="You are a helpful AI assistant."
     )
 
@@ -50,10 +81,11 @@ def agent_with_tools_example():
         }
 
     # Create agent
+    inception_key, _ = load_api_keys()
     agent = InceptionAgent(
-        inception_api_key=os.getenv("INCEPTION_API_KEY"),
+        inception_api_key=inception_key,
         inception_base_url=os.getenv("INCEPTION_BASE_URL", "https://api.inceptionlabs.ai/v1"),
-        model="inception-default",
+        model="mercury",
         system_prompt="You are a helpful assistant with access to weather and calculation tools."
     )
 
@@ -116,10 +148,11 @@ def agent_with_tools_example():
 def multi_turn_conversation_example():
     print("=== Multi-turn Conversation Example ===\n")
 
+    inception_key, _ = load_api_keys()
     agent = InceptionAgent(
-        inception_api_key=os.getenv("INCEPTION_API_KEY"),
+        inception_api_key=inception_key,
         inception_base_url=os.getenv("INCEPTION_BASE_URL", "https://api.inceptionlabs.ai/v1"),
-        model="inception-default",
+        model="mercury",
         system_prompt="You are a helpful assistant that remembers context."
     )
 
@@ -136,8 +169,9 @@ def multi_turn_conversation_example():
 
 
 if __name__ == "__main__":
-    # Make sure you have a .env file with:
-    # INCEPTION_API_KEY=your_api_key_here
+    # Make sure you have either:
+    # 1. A .key file with your Inception Labs API key, or
+    # 2. A .env file with INCEPTION_API_KEY=your_api_key_here
     # INCEPTION_BASE_URL=https://api.inceptionlabs.ai/v1 (optional)
 
     try:
@@ -155,4 +189,4 @@ if __name__ == "__main__":
 
     except Exception as e:
         print(f"Error: {e}")
-        print("\nMake sure you have set INCEPTION_API_KEY in your .env file")
+        print("\nMake sure you have either a .key file or INCEPTION_API_KEY in your .env file")
